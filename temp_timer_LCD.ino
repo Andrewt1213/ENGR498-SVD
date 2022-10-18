@@ -43,8 +43,8 @@ unsigned long sec;
 int state = 0;
 int buttonState = 0; 
 
-// x will keep track of when to take temp
-int x = 0;
+// amtCycles will keep track of when to take temp
+int amtCycles = 0;
 float temp = 0.0;
 
 void setup() {
@@ -53,47 +53,43 @@ void setup() {
   // initialize the LED pins as an output:
   pinMode(timeAlarmLedPin, OUTPUT);
   pinMode(tempAlarmLedPin, OUTPUT);
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   lcd.setCursor(0, 0);
   lcd.print("TMR:"); 
-  
 }
 
 void loop() {
-  // TODO: Fix rollover
   timerCSC();
-  // read temp every 2 seconds
   temperatureCSC();
 }
 
-unsigned long checkButton() {
-  // read the state of the pushbutton value:
+void checkButton() {
+  // Input of button. HIGH is pressed, LOW is not. 
   buttonState = digitalRead(buttonPin);
-  // S0 Begin timer when button first pressed and no timerRunning yet
+  // S0: Begin timer when button first pressed
   if (state == 0 && buttonState == HIGH) {
     startTime = millis();
     clearLCD(5,0);
     state = 1;
   } 
-  // button unpressed, waits for next press to stop
+  // S1: Button unpressed, waits for next press to stop
   if (state == 1 && buttonState == LOW) {
     state = 2;
   }
-  // button pressed again, stops timer and displays
+  // S2: Button pressed again, stops timer and outputs to display CSC
   if (state == 2 && buttonState == HIGH) {
     endTime = millis();
     duration = endTime - startTime;
+    // Display CSC
     clearLCD(5, 0);
     lcd.setCursor(5, 0);
     formatTime(duration);
     state = 3;
   }
-  // unpress and wait for next button press. ie. restarts timer
+  // S3: Unpress and wait for next button press. ie. restarts timer
   if (state == 3 && buttonState == LOW) {
     state = 0;
   }
@@ -132,14 +128,16 @@ void formatTime(unsigned long milliseconds) {
 }
 
 void timerCSC() {
+  // Check if button is pressed and change states accordingly 
   checkButton();
-  // Prints current count as it goes
+  // State 1 or 2 is state after being pressed and currently counting
   if (state == 1 || state == 2) {
+    // Display CSC
     lcd.setCursor(5, 0);
     formatTime((millis() - startTime));
-    //turn LED on if time past threshold
+    // LED output
     if (sec >= DURATION_ALARM) {
-      digitalWrite(timeAlarmLedPin, HIGH);//turn LED on if time past threshold
+      digitalWrite(timeAlarmLedPin, HIGH);
     } else {
       digitalWrite(timeAlarmLedPin, LOW);
     }
@@ -147,25 +145,29 @@ void timerCSC() {
 }
 
 void temperatureCSC(){
-  lcd.setCursor(0, 1);
-  lcd.print("TMP: ");
-  if (x < 100) {
-    x = x + 1;
+  // Input of amtCycles
+  if (amtCycles < 100) {
+    amtCycles = amtCycles + 1;
   }
   else {
+    // Input from temperature sensor
     temp = dht.readTemperature(true);
     // Check if any reads failed and exit early (to try again).
     if (isnan(temp)) {
       Serial.println(F("Failed to read from DHT sensor!"));
       return;
     }
+    // Display CSC
+    lcd.setCursor(0, 1);
+    lcd.print("TMP: ");
     lcd.print(temp);
     lcd.print(" F");
+    // LED Output
     if (temp >= TEMPERATURE_ALARM_MAX || temp <= TEMPERATURE_ALARM_MIN) {
       digitalWrite(tempAlarmLedPin, HIGH);//turn LED on if time past threshold
     } else {
       digitalWrite(tempAlarmLedPin, LOW);
     }
-    x = 0;
+    amtCycles = 0;
   }
 }
