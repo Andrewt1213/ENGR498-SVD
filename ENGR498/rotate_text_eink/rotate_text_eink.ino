@@ -36,19 +36,22 @@ void setup() {
 }
 
 void loop() {
+  
   epd.LDirInit();
   epd.Clear();
-
-  paint.SetWidth(200);
-  paint.SetHeight(40);
-  // Battery life box  
+  
+  paint.SetRotate(ROTATE_270);
+  paint.SetWidth(40);
+  paint.SetHeight(160);
+  
+  // Battery life box
+  Serial.println("e-Paper paint");
   paint.Clear(COLORED);
-  paint.DrawStringAt(15, 14, "Rotate:", &Font20, UNCOLORED);
-  epd.SetFrameMemory(paint.GetImage(), 0, 0, paint.GetWidth(), paint.GetHeight());
-  // Battery life value
+  paint.DrawStringAt(15, 14, "Battery Life:", &Font16, UNCOLORED);
+  epd.SetFrameMemory(paint.GetImage(), 5, 50, paint.GetWidth(), paint.GetHeight());
   
   epd.DisplayFrame();
-  delay(10000);
+  delay(30000);
 
   Serial.println("e-Paper clear and goto sleep");
   epd.HDirInit();
