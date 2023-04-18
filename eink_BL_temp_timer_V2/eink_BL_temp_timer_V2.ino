@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "LowPower.h"
 
 Epd epd;
 unsigned char image[1024];
@@ -88,6 +89,7 @@ void loop() {
   if (elapsedTime % 20 == 0){ //change to sleepTime which = whatever we want
     display();
   }
+  LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_OFF);
 }
 
 
@@ -108,9 +110,8 @@ void display(){
     strcpy(temp_string,temp_text);
     strcat(temp_string,temp_value);
   } else {
-
     strcpy(temp_string,temp_text);
-    strcat(temp_string,error_text)
+    strcat(temp_string,error_text);
   }
   // Format temperature
   
@@ -259,7 +260,7 @@ int multipleTempReadings(){
   sensors.requestTemperatures();  // Send the command to get temperature readings
   int val3 = sensors.getTempFByIndex(0);
 
-  int sum = abs(val1 - val2) + abs(val1 - val2) + abs(val2 - val3)
+  int sum = abs(val1 - val2) + abs(val1 - val2) + abs(val2 - val3);
   if ( sum > 5 ) {
     //differences are too large, likely a sensor error or rapidly changing temp environment
     return 999;
