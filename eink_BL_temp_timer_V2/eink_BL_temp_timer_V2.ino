@@ -65,6 +65,8 @@ char temp_value[10];
 char time_text[] = "Time: ";
 char time_value[10];
 
+char error_text[] = "ERR";
+
 char * battery_life_string = new char[strlen(battery_life_text)+strlen(battery_life_value)+1];
 char * temp_string = new char[strlen(temp_text)+strlen(temp_value)+1];
 char * time_string = new char[strlen(time_text)+strlen(time_value)+1];
@@ -88,6 +90,7 @@ void loop() {
   }
 }
 
+
 void display(){
   // Get battery life
   int analog_value = analogRead(A0);
@@ -99,12 +102,18 @@ void display(){
   strcat(battery_life_string,battery_life_value);
 
   // Get temperature 
-  sensors.requestTemperatures();  // Send the command to get temperature readings
-  int val = sensors.getTempFByIndex(0);
+  int val = multipleTempReadings();
+  if (val != 999) {
+    itoa(val, temp_value, 10);
+    strcpy(temp_string,temp_text);
+    strcat(temp_string,temp_value);
+  } else {
+
+    strcpy(temp_string,temp_text);
+    strcat(temp_string,error_text)
+  }
   // Format temperature
-  itoa(val, temp_value, 10);
-  strcpy(temp_string,temp_text);
-  strcat(temp_string,temp_value);
+  
 
   // Get time
   itoa(timerElapsedTime, time_value, 10);
@@ -231,4 +240,29 @@ void printElapsedTime(){
     savedTime = elapsedTime;
     
   }
+}
+
+/** 
+/* Takes multiple temperature readings one second apart
+/* Finds the sum of differences between 3 values and if the sum is 
+/* greater than 5 then we consider this to be an error. 
+*/
+int multipleTempReadings(){
+  sensors.requestTemperatures();  // Send the command to get temperature readings
+  int val1 = sensors.getTempFByIndex(0);
+  delay(1);
+
+  sensors.requestTemperatures();  // Send the command to get temperature readings
+  int val2 = sensors.getTempFByIndex(0);
+  delay(1);
+
+  sensors.requestTemperatures();  // Send the command to get temperature readings
+  int val3 = sensors.getTempFByIndex(0);
+
+  int sum = abs(val1 - val2) + abs(val1 - val2) + abs(val2 - val3)
+  if ( sum > 5 ) {
+    //differences are too large, likely a sensor error or rapidly changing temp environment
+    return 999;
+  }
+  return val3;
 }
