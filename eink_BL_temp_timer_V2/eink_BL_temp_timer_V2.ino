@@ -89,9 +89,17 @@ void loop() {
   if (elapsedTime % 20 == 0){ //change to sleepTime which = whatever we want
     display();
   }
-  LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_OFF);
+  // Sleep mode
+  goToSleep();
 }
 
+void goToSleep(){
+  // Can only sleep for 8 seconds at a time. So this will sleep, wake up, repeat until overall we have 1780 seconds
+  // which is 29 minutes
+  for (int i = 0; i < 223; i++) {
+    LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_OFF);
+  }
+}
 
 void display(){
   // Get battery life
